@@ -21,6 +21,15 @@ if (is_admin()) {
 	add_action( 'load-post-new.php', 'call_hi_options' );
 }
 
+class hiOptionReader {
+	public static function getHeader($post) {
+		return get_post_meta( $post->ID, '_hi_custom_header', true);
+	}
+	public static function showHeader($post) {
+		return get_post_meta( $post->ID, '_hi_show_header', true);
+	}
+}
+
 class hoelblingInzkoOptions {
 	public function __construct() {
 		add_action('add_meta_boxes', array($this, 'add_meta_box'));
@@ -49,6 +58,13 @@ class hoelblingInzkoOptions {
 		echo 'Custom Header';
 		echo '</label>';
 		echo '<textarea class="large-text metadesc" type="text" id="hi_custom_header" name="hi_custom_header" rows="10">' . esc_attr($value) . '</textarea>';
+		echo '<label for="hi_header_state">';
+		echo 'Display header on page load';
+		echo '</label>';
+		echo '<select name="hi_show_header" id="hi_show_header">';
+		echo '<option value="close">Hidden</option>';
+		echo '<option ' . (hiOptionReader::showHeader($post) == 'close' ? '' : ' selected = "selected" ') . ' value="open">Shown</option>';
+		echo '</select>';
 	}
 
 	function save($post_id) {
@@ -89,15 +105,17 @@ class hoelblingInzkoOptions {
 		/* OK, it's safe for us to save the data now. */
 		
 		// Make sure that it is set.
-		if ( ! isset( $_POST['hi_custom_header'] ) ) {
+		if ( ! isset( $_POST['hi_custom_header'] ) && ! isset ( $_POST['hi_show_header'] ) ) {
 			return;
 		}
 
 		// Sanitize user input.
-		$my_data = esc_textarea( $_POST['hi_custom_header'] );
+		$my_data = $_POST['hi_custom_header'];
+		$show_header = $_POST['hi_show_header'];
 
 		// Update the meta field in the database.
 		update_post_meta( $post_id, '_hi_custom_header', $my_data );
+		update_post_meta( $post_id, '_hi_show_header', $show_header );
 	}
 }
 ?>
